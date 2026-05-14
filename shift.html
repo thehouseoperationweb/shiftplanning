@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>シフト希望入力 — THE HOUSE</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --bg2: #1a1a1a;
+    --bg3: #242424;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.15);
+    --text: #f0f0f0;
+    --text2: #999;
+    --text3: #666;
+    --accent: #e8820c;
+    --accent2: #f5a234;
+    --green: #2ecc71;
+    --green-bg: rgba(46,204,113,0.12);
+    --blue: #3b9eff;
+    --blue-bg: rgba(59,158,255,0.12);
+    --red: #e74c3c;
+    --radius: 10px;
+    --radius-lg: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, 'Hiragino Sans', sans-serif; min-height: 100vh; }
+
+  /* Header */
+  .app-header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; position: sticky; top: 0; z-index: 100; }
+  .app-logo { display: flex; align-items: center; gap: 10px; }
+  .app-logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .app-logo h1 { font-size: 15px; font-weight: 600; }
+  .app-logo p { font-size: 11px; color: var(--text2); }
+  .header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .period-chip { font-size: 12px; color: var(--text2); background: var(--bg3); border: 1px solid var(--border); padding: 4px 10px; border-radius: 20px; }
+  .admin-chip { font-size: 12px; color: var(--accent); background: rgba(232,130,12,0.12); border: 1px solid rgba(232,130,12,0.3); padding: 4px 10px; border-radius: 20px; display: none; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; padding: 12px 20px 0; border-bottom: 1px solid var(--border); background: var(--bg2); overflow-x: auto; }
+  .tab { padding: 8px 16px; font-size: 13px; color: var(--text2); border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; transition: all .15s; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 500; }
+  .tab.locked { opacity: 0.5; }
+
+  /* Pages */
+  .page { display: none; padding: 20px; max-width: 900px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  /* Cards */
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 16px; }
+  .card-title { font-size: 12px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 14px; }
+
+  /* Area badges */
+  .badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+  .badge-hayama { background: rgba(59,158,255,0.15); color: #3b9eff; }
+  .badge-miura { background: rgba(46,204,113,0.15); color: #2ecc71; }
+  .badge-farm { background: rgba(232,130,12,0.15); color: var(--accent2); }
+
+  /* Form elements */
+  select, input[type=text], input[type=date], input[type=password] {
+    background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius);
+    color: var(--text); font-size: 14px; padding: 8px 12px; outline: none;
+    transition: border-color .15s;
+  }
+  select:focus, input:focus { border-color: var(--accent); }
+  select { cursor: pointer; }
+
+  /* Buttons */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--radius); border: 1px solid var(--border2); background: var(--bg3); color: var(--text); font-size: 13px; cursor: pointer; transition: all .15s; white-space: nowrap; }
+  .btn:hover { border-color: var(--border2); background: var(--bg2); }
+  .btn-accent { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  .btn-accent:hover { background: var(--accent2); border-color: var(--accent2); }
+  .btn-green { background: var(--green-bg); border-color: rgba(46,204,113,0.3); color: var(--green); }
+  .btn-green:hover { background: rgba(46,204,113,0.2); }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+  /* Table */
+  .table-scroll { overflow-x: auto; border-radius: var(--radius); }
+  table { border-collapse: collapse; font-size: 12px; width: 100%; min-width: 500px; }
+  th, td { border: 1px solid var(--border); padding: 5px 8px; text-align: center; white-space: nowrap; }
+  th { background: var(--bg3); color: var(--text2); font-size: 11px; font-weight: 500; }
+  th.sticky, td.sticky { position: sticky; left: 0; z-index: 2; text-align: left; min-width: 72px; }
+  th.sticky { background: var(--bg3); }
+  td.sticky { background: var(--bg2); font-weight: 500; }
+  th.sat { background: rgba(46,204,113,0.1) !important; color: #2ecc71; }
+  th.sun { background: rgba(231,76,60,0.1) !important; color: #e74c3c; }
+  td.sat { background: rgba(46,204,113,0.05) !important; }
+  td.sun { background: rgba(231,76,60,0.05) !important; }
+  td.cell-ok { background: rgba(46,204,113,0.15) !important; }
+  td.cell-partial { background: rgba(59,158,255,0.15) !important; }
+  .cell-input { width: 100%; background: transparent; border: none; color: var(--text); font-size: 12px; text-align: center; outline: none; padding: 2px; }
+  .cell-input:focus { background: rgba(255,255,255,0.05); border-radius: 4px; }
+
+  /* Auth */
+  .auth-box { max-width: 320px; margin: 40px auto; text-align: center; }
+  .auth-icon { font-size: 40px; margin-bottom: 16px; }
+  .auth-box h2 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+  .auth-box p { font-size: 13px; color: var(--text2); margin-bottom: 20px; line-height: 1.6; }
+  .pw-row { display: flex; gap: 8px; justify-content: center; }
+  .pw-input { width: 120px; text-align: center; letter-spacing: .3em; font-size: 18px; }
+  .pw-error { color: var(--red); font-size: 12px; margin-top: 10px; min-height: 16px; }
+
+  /* Summary cards */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap: 10px; margin-bottom: 16px; }
+  .stat { background: var(--bg3); border-radius: var(--radius); padding: 12px 14px; }
+  .stat-label { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+  .stat-val { font-size: 22px; font-weight: 600; }
+  .stat-sub { font-size: 12px; color: var(--text2); font-weight: 400; }
+
+  /* Info */
+  .info-box { background: var(--bg3); border-radius: var(--radius); padding: 12px 14px; font-size: 12px; color: var(--text2); line-height: 1.8; margin-bottom: 14px; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px; color: var(--text2); margin-bottom: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 20px; right: 20px; background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--radius); padding: 10px 16px; font-size: 13px; display: none; z-index: 999; box-shadow: 0 4px 20px rgba(0,0,0,.4); }
+  .toast.show { display: block; animation: fadeIn .2s; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+  /* Loading */
+  .loading { text-align: center; padding: 40px; color: var(--text2); font-size: 14px; }
+  .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; margin-right: 8px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Date settings */
+  .date-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .date-row label { font-size: 13px; color: var(--text2); min-width: 44px; }
+  .period-preview { background: var(--bg3); border-radius: var(--radius); padding: 10px 14px; font-size: 13px; color: var(--text2); margin: 10px 0; }
+
+  /* Member select row */
+  .member-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+
+  /* Actions row */
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
+
+  /* Area section title */
+  .area-title { font-size: 13px; font-weight: 600; color: var(--text2); margin: 16px 0 8px; display: flex; align-items: center; gap: 8px; }
+
+  @media (max-width: 600px) {
+    .page { padding: 12px; }
+    .app-header { padding: 10px 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="app-logo">
+    <div class="app-logo-icon">🏡</div>
+    <div>
+      <h1>THE HOUSE</h1>
+      <p>シフト希望入力</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="period-chip" id="headerPeriod">期間未設定</span>
+    <span class="admin-chip" id="adminChip">🔓 管理者</span>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab locked" id="tabSettings" onclick="clickSettings()">🔒 期間設定</button>
+  <button class="tab active" id="tabInput" onclick="showPage('input',this)">✏️ 希望入力</button>
+  <button class="tab" id="tabOverview" onclick="showPage('overview',this)">📋 一覧確認</button>
+  <button class="tab" id="tabExport" onclick="showPage('export',this)">⬇️ ダウンロード</button>
+</div>
+
+<!-- 期間設定 -->
+<div id="page-settings" class="page">
+  <div id="authBox">
+    <div class="auth-box">
+      <div class="auth-icon">🔐</div>
+      <h2>管理者専用</h2>
+      <p>期間設定は管理者のみ変更できます。<br>パスワードを入力してください。</p>
+      <div class="pw-row">
+        <input type="password" class="pw-input" id="pwInput" maxlength="8" placeholder="••••" onkeydown="if(event.key==='Enter')checkPW()">
+        <button class="btn btn-accent" onclick="checkPW()">→</button>
+      </div>
+      <div class="pw-error" id="pwError"></div>
+    </div>
+  </div>
+  <div id="settingsBox" style="display:none">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div class="card-title" style="margin:0">期間設定</div>
+        <button class="btn btn-sm" onclick="logout()">ログアウト</button>
+      </div>
+      <div class="date-row">
+        <label>開始日</label>
+        <input type="date" id="startDate" value="2026-05-19" onchange="updatePreview()">
+      </div>
+      <div class="date-row">
+        <label>終了日</label>
+        <input type="date" id="endDate" value="2026-05-31" onchange="updatePreview()">
+      </div>
+      <div class="period-preview" id="periodPreview"></div>
+      <div class="actions">
+        <button class="btn btn-accent" onclick="applyPeriod()">✓ この期間で確定する</button>
+      </div>
+      <p style="font-size:12px;color:var(--text3);margin-top:10px">※ 期間変更すると入力済みデータがFirebaseからリセットされます</p>
+    </div>
+    <div class="card">
+      <div class="card-title">現在の設定</div>
+      <div class="stats" id="settingsStats"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 希望入力 -->
+<div id="page-input" class="page active">
+  <div class="card">
+    <div class="member-row">
+      <label style="font-size:13px;color:var(--text2)">メンバーを選択</label>
+      <select id="memberSelect" onchange="loadMember()" style="min-width:140px">
+        <option value="">— 選んでください —</option>
+      </select>
+      <span id="areaBadge"></span>
+    </div>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-dot" style="background:rgba(46,204,113,0.4)"></span>OK / エリア名</span>
+      <span class="legend-item"><span class="legend-dot" style="background:rgba(59,158,255,0.4)"></span>時間制限あり（OK14 など）</span>
+      <span class="legend-item"><span class="legend-dot" style="background:var(--bg3)"></span>空欄 = NG</span>
+    </div>
+    <div class="info-box">
+      入れる日 → <strong>OK</strong> または <strong>葉山</strong>・<strong>三浦</strong> などエリア名<br>
+      時間制限あり → <strong>OK14</strong>（14時まで）・<strong>葉山13</strong>（葉山・13時まで）<br>
+      入れない日 → 空欄のまま（NG と書いても OK）
+    </div>
+  </div>
+
+  <div class="card" id="inputTableWrap" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div id="memberNameLabel" style="font-size:15px;font-weight:600"></div>
+      <span id="syncStatus" style="font-size:11px;color:var(--text3)"></span>
+    </div>
+    <div class="table-scroll"><table id="inputTable"></table></div>
+    <div class="actions">
+      <button class="btn btn-green" onclick="saveToFirebase()">💾 保存</button>
+      <button class="btn btn-sm" onclick="clearMember()">↺ クリア</button>
+    </div>
+  </div>
+
+  <div id="noMemberMsg" class="card" style="text-align:center;padding:40px;color:var(--text2)">
+    <div style="font-size:40px;margin-bottom:12px">👤</div>
+    上からメンバーを選んで希望を入力してください
+  </div>
+</div>
+
+<!-- 一覧確認 -->
+<div id="page-overview" class="page">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div class="card-title" style="margin:0">エリア別一覧</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="areaFilter" onchange="renderOverview()" style="font-size:13px">
+          <option value="all">すべて</option>
+          <option value="葉山">葉山</option>
+          <option value="三浦">三浦</option>
+          <option value="FARM">FARM</option>
+        </select>
+        <button class="btn btn-sm" onclick="loadAllData();showPage('overview',document.getElementById('tabOverview'))">🔄 更新</button>
+      </div>
+    </div>
+    <div class="stats" id="overviewStats"></div>
+    <div id="overviewTable"></div>
+  </div>
+</div>
+
+<!-- ダウンロード -->
+<div id="page-export" class="page">
+  <div class="card">
+    <div class="card-title">Excel ダウンロード</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.7">
+      Firebaseに保存された全メンバーのデータをExcel（.xlsx）でダウンロードできます。<br>
+      エリア別シート＋全体シートの構成です。
+    </p>
+    <div class="stats" id="exportStats"></div>
+    <div class="actions">
+      <button class="btn btn-accent" onclick="exportExcel()">📊 Excel でダウンロード</button>
+      <button class="btn" onclick="exportCSV()">📄 CSV でダウンロード</button>
+    </div>
+    <p style="font-size:11px;color:var(--text3);margin-top:10px">※ 未入力は空欄になります</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+import { getDatabase, ref, set, get, remove, onValue } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDMIeH-2j1fCE2i1J4UsqUdMxWtdc7alkk",
+  authDomain: "the-house-cleaning-check.firebaseapp.com",
+  databaseURL: "https://the-house-cleaning-check-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "the-house-cleaning-check",
+  storageBucket: "the-house-cleaning-check.firebasestorage.app",
+  messagingSenderId: "305882214266",
+  appId: "1:305882214266:web:affa4deb3b2b14d278f0c3",
+  measurementId: "G-DE6WGVKN89"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const ADMIN_PW = '1101';
+const MEMBERS = {
+  '葉山': ['山崎','濱野','山田','石本','みか','白根','疋田','橋本'],
+  '三浦': ['長嶋','エリ','杉山','吉田','林','森川','若林','大井'],
+  'FARM': ['森田','外館','瀬川','高橋','原','サラ','高野','細木りな','大河','鈴木久美子'],
+};
+const DAYS_JA = ['日','月','火','水','木','金','土'];
+const AREA_BADGE = {'葉山':'badge-hayama','三浦':'badge-miura','FARM':'badge-farm'};
+
+let DATES = [];
+let shiftData = {};
+let currentMember = null;
+let periodApplied = false;
+let isAdmin = false;
+
+// ========== Firebase ==========
+async function fbSavePeriod(start, end) {
+  await set(ref(db, 'shift/period'), { start, end });
+}
+async function fbLoadPeriod() {
+  const snap = await get(ref(db, 'shift/period'));
+  return snap.exists() ? snap.val() : null;
+}
+async function fbSaveMember(name, data) {
+  await set(ref(db, `shift/members/${name}`), data);
+}
+async function fbLoadAll() {
+  const snap = await get(ref(db, 'shift/members'));
+  return snap.exists() ? snap.val() : {};
+}
+async function fbClearMembers() {
+  await remove(ref(db, 'shift/members'));
+}
+
+// ========== Init ==========
+async function init() {
+  initMemberSelect();
+  updatePreview();
+  renderSettingsStats();
+
+  // Load period from Firebase
+  const period = await fbLoadPeriod();
+  if (period) {
+    document.getElementById('startDate').value = period.start;
+    document.getElementById('endDate').value = period.end;
+    DATES = buildDates(period.start, period.end);
+    periodApplied = true;
+    updateHeaderPeriod();
+    updatePreview();
+    renderSettingsStats();
+  }
+
+  // Load all member data
+  await loadAllData();
+}
+
+async function loadAllData() {
+  const data = await fbLoadAll();
+  shiftData = {};
+  for (const [name, val] of Object.entries(data || {})) {
+    shiftData[name] = val;
+  }
+  if (currentMember) renderInputTable(currentMember);
+}
+
+// ========== Auth ==========
+window.checkPW = function() {
+  const val = document.getElementById('pwInput').value;
+  if (val === ADMIN_PW) {
+    isAdmin = true;
+    document.getElementById('authBox').style.display = 'none';
+    document.getElementById('settingsBox').style.display = 'block';
+    document.getElementById('adminChip').style.display = 'inline-flex';
+    const tab = document.getElementById('tabSettings');
+    tab.classList.remove('locked');
+    tab.textContent = '⚙️ 期間設定';
+    document.getElementById('pwError').textContent = '';
+    updatePreview();
+    renderSettingsStats();
+  } else {
+    document.getElementById('pwError').textContent = 'パスワードが違います';
+    document.getElementById('pwInput').value = '';
+    setTimeout(() => document.getElementById('pwError').textContent = '', 2500);
+  }
+};
+
+window.logout = function() {
+  isAdmin = false;
+  document.getElementById('authBox').style.display = 'block';
+  document.getElementById('settingsBox').style.display = 'none';
+  document.getElementById('adminChip').style.display = 'none';
+  document.getElementById('pwInput').value = '';
+  const tab = document.getElementById('tabSettings');
+  tab.classList.add('locked');
+  tab.textContent = '🔒 期間設定';
+  showPage('input', document.getElementById('tabInput'));
+};
+
+window.clickSettings = function() {
+  showPage('settings', document.getElementById('tabSettings'));
+  if (!isAdmin) setTimeout(() => document.getElementById('pwInput').focus(), 100);
+};
+
+// ========== Period ==========
+function buildDates(start, end) {
+  const dates = [];
+  const cur = new Date(start), last = new Date(end);
+  while (cur <= last) {
+    dates.push({
+      date: (cur.getMonth()+1)+'/'+cur.getDate(),
+      day: DAYS_JA[cur.getDay()],
+      isSat: cur.getDay()===6,
+      isSun: cur.getDay()===0,
+    });
+    cur.setDate(cur.getDate()+1);
+  }
+  return dates;
+}
+
+window.updatePreview = function() {
+  const s = document.getElementById('startDate').value;
+  const e = document.getElementById('endDate').value;
+  if (!s || !e) return;
+  const sd = new Date(s), ed = new Date(e);
+  const days = Math.round((ed-sd)/86400000)+1;
+  const fmt = d => { const dt=new Date(d); return `${dt.getFullYear()}年${dt.getMonth()+1}月${dt.getDate()}日（${DAYS_JA[dt.getDay()]}）`; };
+  document.getElementById('periodPreview').textContent =
+    sd > ed ? '⚠ 終了日が開始日より前です' : `${fmt(s)}  〜  ${fmt(e)}　計 ${days} 日間`;
+};
+
+window.applyPeriod = async function() {
+  const s = document.getElementById('startDate').value;
+  const e = document.getElementById('endDate').value;
+  if (!s || !e || new Date(s) > new Date(e)) { alert('期間が正しくありません'); return; }
+  if (periodApplied && !confirm('期間を変更すると入力済みデータがFirebaseからすべて削除されます。続けますか？')) return;
+
+  DATES = buildDates(s, e);
+  periodApplied = true;
+  shiftData = {};
+  currentMember = null;
+
+  await fbSavePeriod(s, e);
+  await fbClearMembers();
+
+  updateHeaderPeriod();
+  renderSettingsStats();
+  initMemberSelect();
+  document.getElementById('inputTableWrap').style.display = 'none';
+  document.getElementById('noMemberMsg').style.display = 'block';
+  document.getElementById('memberSelect').value = '';
+  showToast(`期間を確定しました（${DATES.length}日間）`);
+};
+
+function updateHeaderPeriod() {
+  if (!DATES.length) return;
+  document.getElementById('headerPeriod').textContent =
+    `${DATES[0].date}（${DATES[0].day}）〜 ${DATES[DATES.length-1].date}（${DATES[DATES.length-1].day}）　${DATES.length}日間`;
+}
+
+function renderSettingsStats() {
+  const el = document.getElementById('settingsStats');
+  const allM = Object.values(MEMBERS).flat().length;
+  el.innerHTML = '';
+  [
+    ['期間', DATES.length ? DATES[0].date+'〜'+DATES[DATES.length-1].date : '未設定'],
+    ['日数', DATES.length ? DATES.length+'日' : '—'],
+    ['メンバー数', allM+'人'],
+    ['エリア', '3'],
+  ].forEach(([l,v]) => {
+    el.innerHTML += `<div class="stat"><div class="stat-label">${l}</div><div class="stat-val" style="font-size:17px">${v}</div></div>`;
+  });
+}
+
+// ========== Member ==========
+function initMemberSelect() {
+  const sel = document.getElementById('memberSelect');
+  sel.innerHTML = '<option value="">— 選んでください —</option>';
+  for (const [area, members] of Object.entries(MEMBERS)) {
+    const og = document.createElement('optgroup');
+    og.label = area;
+    members.forEach(m => {
+      const op = document.createElement('option');
+      op.value = m; op.textContent = m;
+      og.appendChild(op);
+    });
+    sel.appendChild(og);
+  }
+}
+
+function getMemberArea(n) {
+  for (const [a,ms] of Object.entries(MEMBERS)) if (ms.includes(n)) return a;
+  return '';
+}
+
+window.loadMember = function() {
+  if (!periodApplied) {
+    alert('先に「期間設定」タブで管理者が期間を確定してください');
+    document.getElementById('memberSelect').value = '';
+    return;
+  }
+  const name = document.getElementById('memberSelect').value;
+  if (!name) {
+    document.getElementById('inputTableWrap').style.display = 'none';
+    document.getElementById('noMemberMsg').style.display = 'block';
+    return;
+  }
+  currentMember = name;
+  const area = getMemberArea(name);
+  const badge = document.getElementById('areaBadge');
+  badge.className = 'badge ' + AREA_BADGE[area];
+  badge.textContent = area;
+  document.getElementById('inputTableWrap').style.display = 'block';
+  document.getElementById('noMemberMsg').style.display = 'none';
+  document.getElementById('memberNameLabel').textContent = name + ' さんの希望';
+  if (!shiftData[name]) shiftData[name] = {};
+  renderInputTable(name);
+};
+
+function cellClass(val) {
+  if (!val || val.toUpperCase()==='NG') return '';
+  if (/\d/.test(val)) return 'cell-partial';
+  return 'cell-ok';
+}
+
+function renderInputTable(name) {
+  const table = document.getElementById('inputTable');
+  table.innerHTML = '';
+  const thead = document.createElement('thead');
+  const tr = document.createElement('tr');
+  const th0 = document.createElement('th'); th0.className='sticky'; tr.appendChild(th0);
+  DATES.forEach(d => {
+    const th = document.createElement('th');
+    th.className = (d.isSat?'sat':d.isSun?'sun':'');
+    th.innerHTML = d.date+'<br><span style="font-size:10px;opacity:.7">'+d.day+'</span>';
+    tr.appendChild(th);
+  });
+  thead.appendChild(tr); table.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  const row = document.createElement('tr');
+  const td0 = document.createElement('td'); td0.className='sticky'; td0.textContent=name; row.appendChild(td0);
+  DATES.forEach((d,i) => {
+    const td = document.createElement('td');
+    const val = (shiftData[name]||{})[i]||'';
+    td.className = cellClass(val)+(d.isSat?' sat':d.isSun?' sun':'');
+    const inp = document.createElement('input');
+    inp.type='text'; inp.className='cell-input'; inp.value=val; inp.placeholder='—'; inp.dataset.idx=i;
+    inp.addEventListener('input', function() {
+      if (!shiftData[name]) shiftData[name]={};
+      shiftData[name][this.dataset.idx] = this.value;
+      td.className = cellClass(this.value)+(d.isSat?' sat':d.isSun?' sun':'');
+    });
+    td.appendChild(inp); row.appendChild(td);
+  });
+  tbody.appendChild(row); table.appendChild(tbody);
+}
+
+window.saveToFirebase = async function() {
+  if (!currentMember) return;
+  document.getElementById('syncStatus').textContent = '保存中...';
+  try {
+    await fbSaveMember(currentMember, shiftData[currentMember] || {});
+    document.getElementById('syncStatus').textContent = '✓ 保存済み';
+    showToast(currentMember + 'さんの希望を保存しました');
+    setTimeout(() => document.getElementById('syncStatus').textContent = '', 3000);
+  } catch(e) {
+    document.getElementById('syncStatus').textContent = '⚠ 保存失敗';
+    alert('保存に失敗しました: ' + e.message);
+  }
+};
+
+window.clearMember = function() {
+  if (!currentMember) return;
+  if (!confirm(currentMember + 'さんの入力をクリアしますか？')) return;
+  shiftData[currentMember] = {};
+  renderInputTable(currentMember);
+};
+
+// ========== Overview ==========
+window.renderOverview = function() {
+  const filter = document.getElementById('areaFilter').value;
+  const container = document.getElementById('overviewTable');
+  container.innerHTML = '';
+  const areas = filter==='all' ? ['葉山','三浦','FARM'] : [filter];
+
+  areas.forEach(area => {
+    const members = MEMBERS[area];
+    const title = document.createElement('div');
+    title.className = 'area-title';
+    title.innerHTML = `<span class="badge ${AREA_BADGE[area]}">${area}</span>`;
+    container.appendChild(title);
+
+    const sd = document.createElement('div'); sd.className='table-scroll';
+    const table = document.createElement('table');
+    table.style.marginBottom='1rem';
+    const thead = document.createElement('thead');
+    const tr0 = document.createElement('tr');
+    const th0 = document.createElement('th'); th0.className='sticky'; th0.textContent='メンバー'; tr0.appendChild(th0);
+    DATES.forEach(d => {
+      const th=document.createElement('th');
+      th.className=d.isSat?'sat':d.isSun?'sun':'';
+      th.innerHTML=d.date+'<br><span style="font-size:10px;opacity:.7">'+d.day+'</span>';
+      tr0.appendChild(th);
+    });
+    thead.appendChild(tr0); table.appendChild(thead);
+    const tbody=document.createElement('tbody');
+    members.forEach(name => {
+      const row=document.createElement('tr');
+      const td0=document.createElement('td'); td0.className='sticky'; td0.textContent=name; row.appendChild(td0);
+      DATES.forEach((d,i) => {
+        const td=document.createElement('td');
+        const val=(shiftData[name]||{})[i]||'';
+        td.className=cellClass(val)+(d.isSat?' sat':d.isSun?' sun':'');
+        td.textContent=val;
+        row.appendChild(td);
+      });
+      tbody.appendChild(row);
+    });
+    table.appendChild(tbody); sd.appendChild(table); container.appendChild(sd);
+  });
+
+  // stats
+  const statsEl = document.getElementById('overviewStats');
+  statsEl.innerHTML='';
+  ['葉山','三浦','FARM'].forEach(area=>{
+    const ms=MEMBERS[area];
+    const filled=ms.filter(m=>shiftData[m]&&Object.values(shiftData[m]).some(v=>v&&v!=='NG')).length;
+    statsEl.innerHTML+=`<div class="stat"><div class="stat-label">${area} 入力済み</div><div class="stat-val">${filled}<span class="stat-sub"> / ${ms.length}</span></div></div>`;
+  });
+};
+
+// ========== Export ==========
+window.renderExportStats = function() {
+  const el=document.getElementById('exportStats');
+  el.innerHTML='';
+  let total=0;
+  ['葉山','三浦','FARM'].forEach(area=>{
+    const ms=MEMBERS[area];
+    const filled=ms.filter(m=>shiftData[m]&&Object.values(shiftData[m]).some(v=>v&&v!=='NG')).length;
+    total+=filled;
+    el.innerHTML+=`<div class="stat"><div class="stat-label">${area}</div><div class="stat-val">${filled}<span class="stat-sub"> / ${ms.length}人</span></div></div>`;
+  });
+  const allM=Object.values(MEMBERS).flat().length;
+  el.innerHTML+=`<div class="stat"><div class="stat-label">全体</div><div class="stat-val">${total}<span class="stat-sub"> / ${allM}人</span></div></div>`;
+};
+
+// ========== Pages ==========
+window.showPage = function(id, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(id==='overview') { loadAllData().then(renderOverview); }
+  if(id==='export') { loadAllData().then(renderExportStats); }
+};
+
+// ========== XLSX Export ==========
+window.exportExcel = async function() {
+  await loadAllData();
+  const script = document.createElement('script');
+  script.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  script.onload = () => {
+    const wb = window.XLSX.utils.book_new();
+    ['葉山','三浦','FARM'].forEach(area=>{
+      const ms=MEMBERS[area];
+      const rows=[['メンバー',...DATES.map(d=>d.date)],['', ...DATES.map(d=>d.day)]];
+      ms.forEach(name=>rows.push([name,...DATES.map((d,i)=>(shiftData[name]||{})[i]||'')]));
+      const ws=window.XLSX.utils.aoa_to_sheet(rows);
+      ws['!cols']=[{wch:12},...DATES.map(()=>({wch:8}))];
+      window.XLSX.utils.book_append_sheet(wb,ws,area);
+    });
+    const allRows=[['エリア','メンバー',...DATES.map(d=>d.date+'('+d.day+')')]];
+    ['葉山','三浦','FARM'].forEach(area=>{
+      MEMBERS[area].forEach(name=>allRows.push([area,name,...DATES.map((d,i)=>(shiftData[name]||{})[i]||'')]));
+    });
+    const wsAll=window.XLSX.utils.aoa_to_sheet(allRows);
+    window.XLSX.utils.book_append_sheet(wb,wsAll,'全体');
+    const fname=`シフト希望_${DATES[0]?.date.replace('/','')||''}-${DATES[DATES.length-1]?.date.replace('/','')}.xlsx`;
+    window.XLSX.writeFile(wb,fname);
+  };
+  document.head.appendChild(script);
+};
+
+window.exportCSV = async function() {
+  await loadAllData();
+  if(!DATES.length){alert('先に期間を設定してください');return;}
+  const rows=[['エリア','メンバー',...DATES.map(d=>d.date+'('+d.day+')')]];
+  ['葉山','三浦','FARM'].forEach(area=>{
+    MEMBERS[area].forEach(name=>rows.push([area,name,...DATES.map((d,i)=>(shiftData[name]||{})[i]||'')]));
+  });
+  const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`シフト希望_${DATES[0]?.date.replace('/','')}.csv`;a.click();
+  URL.revokeObjectURL(url);
+};
+
+// ========== Toast ==========
+window.showToast = function(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+};
+
+init();
+</script>
+</body>
+</html>
