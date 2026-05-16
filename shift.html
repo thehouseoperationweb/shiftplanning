@@ -5,141 +5,126 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>シフト希望入力 — THE HOUSE</title>
 <style>
-  :root {
-    --bg: #0f0f0f;
-    --bg2: #1a1a1a;
-    --bg3: #242424;
-    --border: rgba(255,255,255,0.08);
-    --border2: rgba(255,255,255,0.15);
-    --text: #f0f0f0;
-    --text2: #999;
-    --text3: #666;
-    --accent: #e8820c;
-    --accent2: #f5a234;
-    --green: #2ecc71;
-    --green-bg: rgba(46,204,113,0.12);
-    --red: #e74c3c;
-    --radius: 10px;
-    --radius-lg: 14px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: -apple-system, 'Hiragino Sans', sans-serif; min-height: 100vh; }
-
-  .app-header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; position: sticky; top: 0; z-index: 100; }
-  .app-logo { display: flex; align-items: center; gap: 10px; }
-  .app-logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
-  .app-logo h1 { font-size: 15px; font-weight: 600; }
-  .app-logo p { font-size: 11px; color: var(--text2); }
-  .header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .period-chip { font-size: 12px; color: var(--text2); background: var(--bg3); border: 1px solid var(--border); padding: 4px 10px; border-radius: 20px; }
-  .admin-chip { font-size: 12px; color: var(--accent); background: rgba(232,130,12,0.12); border: 1px solid rgba(232,130,12,0.3); padding: 4px 10px; border-radius: 20px; display: none; }
-
-  .tabs { display: flex; gap: 4px; padding: 12px 20px 0; border-bottom: 1px solid var(--border); background: var(--bg2); overflow-x: auto; }
-  .tab { padding: 8px 16px; font-size: 13px; color: var(--text2); border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; transition: all .15s; }
-  .tab:hover { color: var(--text); }
-  .tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 500; }
-  .tab.locked { opacity: 0.5; }
-
-  .page { display: none; padding: 20px; max-width: 960px; margin: 0 auto; }
-  .page.active { display: block; }
-
-  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 16px; }
-  .card-title { font-size: 12px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 14px; }
-
-  .badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
-  .badge-hayama { background: rgba(59,158,255,0.15); color: #3b9eff; }
-  .badge-miura { background: rgba(46,204,113,0.15); color: #2ecc71; }
-  .badge-farm { background: rgba(232,130,12,0.15); color: var(--accent2); }
-
-  select, input[type=text], input[type=date], input[type=password] {
-    background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius);
-    color: var(--text); font-size: 14px; padding: 8px 12px; outline: none; transition: border-color .15s;
-  }
-  select:focus, input:focus { border-color: var(--accent); }
-
-  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--radius); border: 1px solid var(--border2); background: var(--bg3); color: var(--text); font-size: 13px; cursor: pointer; transition: all .15s; white-space: nowrap; }
-  .btn:hover { background: var(--bg2); }
-  .btn-accent { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
-  .btn-accent:hover { background: var(--accent2); border-color: var(--accent2); }
-  .btn-green { background: var(--green-bg); border-color: rgba(46,204,113,0.3); color: var(--green); }
-  .btn-green:hover { background: rgba(46,204,113,0.2); }
-  .btn-sm { padding: 5px 12px; font-size: 12px; }
-
-  .table-scroll { overflow-x: auto; border-radius: var(--radius); }
-  table { border-collapse: collapse; font-size: 12px; width: 100%; }
-  th, td { border: 1px solid var(--border); padding: 4px 5px; text-align: center; white-space: nowrap; }
-  th { background: var(--bg3); color: var(--text2); font-size: 11px; font-weight: 500; }
-  th.sticky, td.sticky { position: sticky; left: 0; z-index: 2; text-align: left; min-width: 68px; }
-  th.sticky { background: var(--bg3); }
-  td.sticky { background: var(--bg2); font-weight: 500; font-size: 13px; }
-  th.sat { background: rgba(46,204,113,0.1) !important; color: #2ecc71; }
-  th.sun { background: rgba(231,76,60,0.1) !important; color: #e74c3c; }
-  td.sat { background: rgba(46,204,113,0.04) !important; }
-  td.sun { background: rgba(231,76,60,0.04) !important; }
-  td.cell-ok { background: rgba(46,204,113,0.2) !important; }
-  td.cell-partial { background: rgba(59,158,255,0.2) !important; }
-  td.cell-ng { background: rgba(100,100,100,0.1) !important; }
-
-  .cell-select {
-    width: 100%;
-    min-width: 76px;
-    background: transparent;
-    border: none;
-    color: var(--text);
-    font-size: 12px;
-    text-align: center;
-    outline: none;
-    padding: 2px 0;
-    cursor: pointer;
-    border-radius: 4px;
-    -webkit-appearance: auto;
-  }
-  .cell-select option { background: #1a1a1a; color: var(--text); }
-
-  .auth-box { max-width: 320px; margin: 40px auto; text-align: center; }
-  .auth-icon { font-size: 40px; margin-bottom: 16px; }
-  .auth-box h2 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
-  .auth-box p { font-size: 13px; color: var(--text2); margin-bottom: 20px; line-height: 1.6; }
-  .pw-row { display: flex; gap: 8px; justify-content: center; }
-  .pw-input { width: 120px; text-align: center; letter-spacing: .3em; font-size: 18px; }
-  .pw-error { color: var(--red); font-size: 12px; margin-top: 10px; min-height: 16px; }
-
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap: 10px; margin-bottom: 16px; }
-  .stat { background: var(--bg3); border-radius: var(--radius); padding: 12px 14px; }
-  .stat-label { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
-  .stat-val { font-size: 22px; font-weight: 600; }
-  .stat-sub { font-size: 12px; color: var(--text2); font-weight: 400; }
-
-  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px; color: var(--text2); margin-bottom: 12px; }
-  .legend-item { display: flex; align-items: center; gap: 5px; }
-  .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
-
-  .toast { position: fixed; bottom: 20px; right: 20px; background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--radius); padding: 10px 16px; font-size: 13px; display: none; z-index: 999; box-shadow: 0 4px 20px rgba(0,0,0,.4); }
-  .toast.show { display: block; animation: fadeIn .2s; }
-  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)} }
-
-  .date-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
-  .date-row label { font-size: 13px; color: var(--text2); min-width: 44px; }
-  .period-preview { background: var(--bg3); border-radius: var(--radius); padding: 10px 14px; font-size: 13px; color: var(--text2); margin: 10px 0; }
-  .member-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
-  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
-  .area-title { font-size: 13px; font-weight: 600; color: var(--text2); margin: 16px 0 8px; display: flex; align-items: center; gap: 8px; }
-
-  @media (max-width: 600px) {
-    .page { padding: 12px; }
-    .app-header { padding: 10px 14px; }
-    .cell-select { min-width: 68px; font-size: 11px; }
-  }
+:root {
+  --bg: #0a0a0a;
+  --bg2: #111111;
+  --bg3: #1a1a1a;
+  --border: rgba(201,168,76,0.12);
+  --border2: rgba(201,168,76,0.25);
+  --text: #f0ece4;
+  --text2: #9a9080;
+  --text3: #5a5248;
+  --gold: #C9A84C;
+  --gold2: #e2c47a;
+  --green: #2ecc71;
+  --green-bg: rgba(46,204,113,0.10);
+  --red: #e74c3c;
+  --radius: 10px;
+  --radius-lg: 14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Hiragino Mincho ProN','Yu Mincho',Georgia,-apple-system,sans-serif;min-height:100vh;letter-spacing:.01em}
+.app-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100}
+.app-logo{display:flex;align-items:center;gap:12px}
+.app-logo-icon{width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;border:1.5px solid var(--gold)}
+.app-logo-icon img{width:100%;height:100%;object-fit:cover}
+.app-logo h1{font-size:13px;font-weight:400;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.app-logo p{font-size:9px;color:var(--text3);letter-spacing:.18em;text-transform:uppercase;margin-top:2px}
+.header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.period-chip{font-size:10px;color:var(--text2);background:transparent;border:1px solid var(--border);padding:4px 12px;border-radius:20px;letter-spacing:.08em}
+.admin-chip{font-size:10px;color:var(--gold);background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);padding:4px 12px;border-radius:20px;display:none;letter-spacing:.08em}
+.tabs{display:flex;gap:4px;padding:10px 20px 0;border-bottom:1px solid var(--border);background:var(--bg2);overflow-x:auto}
+.tab{padding:8px 14px;font-size:11px;color:var(--text2);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:all .15s;letter-spacing:.06em;text-transform:uppercase;font-family:inherit}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold);font-weight:500}
+.tab.locked{opacity:.5}
+.page{display:none;padding:20px;max-width:960px;margin:0 auto}
+.page.active{display:block}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:16px}
+.card-title{font-size:10px;font-weight:400;color:var(--gold);text-transform:uppercase;letter-spacing:.14em;margin-bottom:14px}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-hayama{background:rgba(201,168,76,0.12);color:var(--gold2);border:1px solid rgba(201,168,76,0.2)}
+.badge-miura{background:rgba(180,200,180,0.1);color:#a8c0a0;border:1px solid rgba(180,200,180,0.2)}
+.badge-farm{background:rgba(180,160,120,0.1);color:#c0a87a;border:1px solid rgba(180,160,120,0.2)}
+select,input[type=text],input[type=date],input[type=password]{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:14px;padding:8px 12px;outline:none;transition:border-color .15s;font-family:inherit}
+select:focus,input:focus{border-color:var(--gold)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:13px;cursor:pointer;transition:all .15s;white-space:nowrap;font-family:inherit}
+.btn:hover{background:var(--bg2)}
+.btn-accent{background:var(--gold);border-color:var(--gold);color:#0a0a0a;font-weight:700;letter-spacing:.04em}
+.btn-accent:hover{background:var(--gold2);border-color:var(--gold2)}
+.btn-green{background:var(--green-bg);border-color:rgba(46,204,113,0.3);color:var(--green)}
+.btn-green:hover{background:rgba(46,204,113,0.2)}
+.btn-sm{padding:5px 12px;font-size:12px}
+.table-scroll{overflow-x:auto;border-radius:var(--radius)}
+table{border-collapse:collapse;font-size:12px;width:100%}
+th,td{border:1px solid var(--border);padding:4px 5px;text-align:center;white-space:nowrap}
+th{background:var(--bg3);color:var(--text2);font-size:11px;font-weight:500}
+th.sticky,td.sticky{position:sticky;left:0;z-index:2;text-align:left;min-width:68px}
+th.sticky{background:var(--bg3)}
+td.sticky{background:var(--bg2);font-weight:500;font-size:13px}
+th.sat{background:rgba(201,168,76,0.08)!important;color:var(--gold2)}
+th.sun{background:rgba(180,80,60,0.1)!important;color:#d08070}
+td.sat{background:rgba(201,168,76,0.04)!important}
+td.sun{background:rgba(180,80,60,0.04)!important}
+td.cell-ok{background:rgba(201,168,76,0.15)!important}
+td.cell-partial{background:rgba(180,160,120,0.15)!important}
+td.cell-ng{background:rgba(100,100,100,0.1)!important}
+.cell-inner{display:flex;flex-direction:column;align-items:center;gap:2px}
+.cell-select{width:100%;min-width:76px;background:transparent;border:none;color:var(--text);font-size:12px;text-align:center;outline:none;padding:2px 0;cursor:pointer;border-radius:4px;-webkit-appearance:auto}
+.cell-select option{background:#1a1a1a;color:var(--text)}
+.memo-btn{background:none;border:none;cursor:pointer;font-size:12px;line-height:1;padding:1px;opacity:.3;transition:opacity .15s}
+.memo-btn:hover{opacity:.8}
+.memo-btn.has-memo{opacity:1;color:var(--gold)}
+.memo-popup{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.65);align-items:center;justify-content:center}
+.memo-popup.open{display:flex}
+.memo-box{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:20px;width:90%;max-width:360px}
+.memo-box h3{font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text)}
+.memo-box textarea{width:100%;font-size:14px;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg3);color:var(--text);resize:none;font-family:inherit;line-height:1.6;outline:none}
+.memo-box textarea:focus{border-color:var(--gold)}
+.memo-box-actions{display:flex;gap:8px;margin-top:12px;justify-content:flex-end}
+.auth-box{max-width:320px;margin:40px auto;text-align:center}
+.auth-icon{font-size:40px;margin-bottom:16px}
+.auth-box h2{font-size:18px;font-weight:600;margin-bottom:8px}
+.auth-box p{font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6}
+.pw-row{display:flex;gap:8px;justify-content:center}
+.pw-input{width:120px;text-align:center;letter-spacing:.3em;font-size:18px}
+.pw-error{color:var(--red);font-size:12px;margin-top:10px;min-height:16px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px}
+.stat{background:var(--bg3);border-radius:var(--radius);padding:12px 14px}
+.stat-label{font-size:11px;color:var(--text3);margin-bottom:4px}
+.stat-val{font-size:22px;font-weight:600}
+.stat-sub{font-size:12px;color:var(--text2);font-weight:400}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--text2);margin-bottom:12px}
+.legend-item{display:flex;align-items:center;gap:5px}
+.legend-dot{width:10px;height:10px;border-radius:3px}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 16px;font-size:13px;display:none;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+.toast.show{display:block;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.date-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.date-row label{font-size:13px;color:var(--text2);min-width:44px}
+.period-preview{background:var(--bg3);border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--text2);margin:10px 0}
+.member-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.area-title{font-size:13px;font-weight:600;color:var(--text2);margin:16px 0 8px;display:flex;align-items:center;gap:8px}
+.member-list-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg3);border-radius:var(--radius);margin-bottom:6px}
+.member-list-name{flex:1;font-size:14px}
+.member-list-area{font-size:11px;color:var(--text3)}
+.member-del-btn{background:none;border:none;color:var(--red);cursor:pointer;font-size:18px;padding:2px 6px;opacity:.6}
+.member-del-btn:hover{opacity:1}
+.add-member-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+@media(max-width:600px){.page{padding:12px}.app-header{padding:10px 14px}.cell-select{min-width:68px;font-size:11px}}
 </style>
 </head>
 <body>
 
 <div class="app-header">
   <div class="app-logo">
-    <div class="app-logo-icon">🏡</div>
+    <div class="app-logo-icon">
+      <img src="hero.jpg" alt="THE HOUSE" onerror="this.style.display='none'">
+    </div>
     <div>
-      <h1>THE HOUSE</h1>
-      <p>シフト希望入力</p>
+      <h1>THE HOUSE — STAFF</h1>
+      <p>Shift Planning</p>
     </div>
   </div>
   <div class="header-right">
@@ -153,6 +138,7 @@
   <button class="tab active" id="tabInput" onclick="showPage('input',this)">✏️ 希望入力</button>
   <button class="tab" id="tabOverview" onclick="showPage('overview',this)">📋 一覧確認</button>
   <button class="tab" id="tabExport" onclick="showPage('export',this)">⬇️ ダウンロード</button>
+  <button class="tab locked" id="tabMembers" onclick="clickMembers()">👥 メンバー管理</button>
 </div>
 
 <!-- 期間設定 -->
@@ -175,9 +161,9 @@
         <div class="card-title" style="margin:0">期間設定</div>
         <button class="btn btn-sm" onclick="logout()">ログアウト</button>
       </div>
-      <div class="date-row"><label>開始日</label><input type="date" id="startDate" value="2026-05-19" onchange="updatePreview()"></div>
-      <div class="date-row"><label>終了日</label><input type="date" id="endDate" value="2026-05-31" onchange="updatePreview()"></div>
-      <div class="period-preview" id="periodPreview"></div>
+      <div class="date-row"><label>開始日</label><input type="date" id="startDate" onchange="updatePreview()"></div>
+      <div class="date-row"><label>終了日</label><input type="date" id="endDate" onchange="updatePreview()"></div>
+      <div class="period-preview" id="periodPreview">日付を選択してください</div>
       <div class="actions">
         <button class="btn btn-accent" onclick="applyPeriod()">✓ この期間で確定する</button>
       </div>
@@ -199,8 +185,8 @@
       <span id="areaBadge"></span>
     </div>
     <div class="legend">
-      <span class="legend-item"><span class="legend-dot" style="background:rgba(46,204,113,0.5)"></span>OK 系</span>
-      <span class="legend-item"><span class="legend-dot" style="background:rgba(59,158,255,0.5)"></span>時間制限あり</span>
+      <span class="legend-item"><span class="legend-dot" style="background:rgba(201,168,76,0.5)"></span>OK 系</span>
+      <span class="legend-item"><span class="legend-dot" style="background:rgba(180,160,120,0.5)"></span>時間制限あり</span>
       <span class="legend-item"><span class="legend-dot" style="background:rgba(100,100,100,0.3)"></span>NG</span>
     </div>
   </div>
@@ -211,7 +197,7 @@
     </div>
     <div class="table-scroll"><table id="inputTable"></table></div>
     <div class="actions">
-      <button class="btn btn-green" onclick="saveToFirebase()">💾 保存</button>
+      <button class="btn btn-green" onclick="saveData()">💾 保存</button>
       <button class="btn btn-sm" onclick="clearMember()">↺ クリア</button>
     </div>
   </div>
@@ -226,15 +212,12 @@
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <div class="card-title" style="margin:0">エリア別一覧</div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <select id="areaFilter" onchange="renderOverview()" style="font-size:13px">
-          <option value="all">すべて</option>
-          <option value="葉山">葉山</option>
-          <option value="三浦">三浦</option>
-          <option value="FARM">FARM</option>
-        </select>
-        <button class="btn btn-sm" onclick="loadAllData().then(renderOverview)">🔄 更新</button>
-      </div>
+      <select id="areaFilter" onchange="renderOverview()" style="font-size:13px">
+        <option value="all">すべて</option>
+        <option value="葉山">葉山</option>
+        <option value="三浦">三浦</option>
+        <option value="FARM">FARM</option>
+      </select>
     </div>
     <div class="stats" id="overviewStats"></div>
     <div id="overviewTable"></div>
@@ -245,7 +228,7 @@
 <div id="page-export" class="page">
   <div class="card">
     <div class="card-title">Excel ダウンロード</div>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.7">Firebaseに保存された全メンバーのデータをExcel（.xlsx）でダウンロードできます。</p>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.7">全メンバーのデータをExcel（.xlsx）でダウンロードできます。</p>
     <div class="stats" id="exportStats"></div>
     <div class="actions">
       <button class="btn btn-accent" onclick="exportExcel()">📊 Excel でダウンロード</button>
@@ -254,13 +237,61 @@
   </div>
 </div>
 
+<!-- メンバー管理 -->
+<div id="page-members" class="page">
+  <div id="membersAuthBox">
+    <div class="auth-box">
+      <div class="auth-icon">👥</div>
+      <h2>管理者専用</h2>
+      <p>メンバー管理は管理者のみ変更できます。<br>パスワードを入力してください。</p>
+      <div class="pw-row">
+        <input type="password" class="pw-input" id="pwInputM" maxlength="8" placeholder="••••" onkeydown="if(event.key==='Enter')checkPWM()">
+        <button class="btn btn-accent" onclick="checkPWM()">→</button>
+      </div>
+      <div class="pw-error" id="pwErrorM"></div>
+    </div>
+  </div>
+  <div id="membersPanel" style="display:none">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div class="card-title" style="margin:0">メンバー管理</div>
+        <button class="btn btn-sm" onclick="logoutM()">ログアウト</button>
+      </div>
+      <div id="memberListContainer"></div>
+      <div class="add-member-row">
+        <input type="text" id="newMemberName" placeholder="名前" style="flex:1;min-width:100px">
+        <select id="newMemberArea" style="min-width:100px">
+          <option value="葉山">葉山</option>
+          <option value="三浦">三浦</option>
+          <option value="FARM">FARM</option>
+        </select>
+        <button class="btn btn-accent btn-sm" onclick="addMember()">＋ 追加</button>
+      </div>
+      <div class="actions">
+        <button class="btn btn-green" onclick="saveMemberList()">💾 メンバーリストを保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- メモポップアップ -->
+<div class="memo-popup" id="memoPopup">
+  <div class="memo-box">
+    <h3 id="memoTitle">メモ</h3>
+    <textarea id="memoTextarea" rows="4" placeholder="例：子連れで入ります、午前のみ希望 など"></textarea>
+    <div class="memo-box-actions">
+      <button class="btn btn-sm" onclick="closeMemo()">キャンセル</button>
+      <button class="btn btn-accent btn-sm" onclick="saveMemo()">保存</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-import { getDatabase, ref, set, get, remove } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
-
-const firebaseConfig = {
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+const _app = initializeApp({
   apiKey: "AIzaSyDMIeH-2j1fCE2i1J4UsqUdMxWtdc7alkk",
   authDomain: "the-house-cleaning-check.firebaseapp.com",
   databaseURL: "https://the-house-cleaning-check-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -268,87 +299,116 @@ const firebaseConfig = {
   storageBucket: "the-house-cleaning-check.firebasestorage.app",
   messagingSenderId: "305882214266",
   appId: "1:305882214266:web:affa4deb3b2b14d278f0c3",
+});
+const _db = getDatabase(_app);
+window.__fb = {
+  savePeriod:(s,e)=>set(ref(_db,'shift/period'),{start:s,end:e}),
+  loadPeriod:async()=>{const s=await get(ref(_db,'shift/period'));return s.exists()?s.val():null;},
+  saveMember:(name,data)=>set(ref(_db,'shift/members/'+name.replace(/[.#$[\]/]/g,'_')),data),
+  loadAll:async()=>{const s=await get(ref(_db,'shift/members'));return s.exists()?s.val():{};},
+  clearMembers:()=>remove(ref(_db,'shift/members')),
+  saveMemberList:(m)=>set(ref(_db,'shift/memberList'),m),
+  loadMemberList:async()=>{const s=await get(ref(_db,'shift/memberList'));return s.exists()?s.val():null;},
+};
+window.__fbReady=true;
+window.dispatchEvent(new CustomEvent('fbReady'));
+</script>
+
+<script>
+const ADMIN_PW = '1101';
+const DAYS_JA = ['日','月','火','水','木','金','土'];
+const AREA_BADGE = {'葉山':'badge-hayama','三浦':'badge-miura','FARM':'badge-farm'};
+const OPTIONS = {
+  '葉山': ['','OK','OK12','OK13','OK14','OK15','NG'],
+  '三浦': ['','OK','OK12','OK13','OK14','OK15','NG'],
+  'FARM': ['','OK','OK11時〜','OK15','OK16','OK17','NG'],
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-const ADMIN_PW = '1101';
-const MEMBERS = {
+let MEMBERS = {
   '葉山': ['山崎','濱野','山田','石本','みか','白根','疋田','橋本'],
   '三浦': ['長嶋','エリ','杉山','吉田','林','森川','若林','大井'],
   'FARM': ['森田','外館','瀬川','高橋','原','サラ','高野','細木りな','大河','鈴木久美子'],
 };
-const DAYS_JA = ['日','月','火','水','木','金','土'];
-const AREA_BADGE = {'葉山':'badge-hayama','三浦':'badge-miura','FARM':'badge-farm'};
 
-const OPTIONS = {
-  '葉山': ['', 'OK', 'OK12', 'OK13', 'OK14', 'OK15', 'NG'],
-  '三浦': ['', 'OK', 'OK12', 'OK13', 'OK14', 'OK15', 'NG'],
-  'FARM': ['', 'OK', 'OK11時〜', 'OK15', 'OK16', 'OK17', 'NG'],
+let DATES = [];
+let shiftData = {};
+let currentMember = null;
+let periodApplied = false;
+let isAdmin = false;
+let memoTarget = {name:null, idx:null};
+
+// ===== Storage =====
+function lsSave(key,val){try{localStorage.setItem(key,JSON.stringify(val));}catch(e){}}
+function lsLoad(key){try{const v=localStorage.getItem(key);return v?JSON.parse(v):null;}catch(e){return null;}}
+const fb={
+  async savePeriod(s,e){lsSave('thp',{start:s,end:e});if(window.__fb)await window.__fb.savePeriod(s,e);},
+  async loadPeriod(){if(window.__fb){const v=await window.__fb.loadPeriod();if(v)return v;}return lsLoad('thp');},
+  async saveMember(n,d){lsSave('thsd',shiftData);if(window.__fb)await window.__fb.saveMember(n,d);},
+  async loadAll(){if(window.__fb){const v=await window.__fb.loadAll();if(v&&Object.keys(v).length)return v;}return lsLoad('thsd')||{};},
+  async clearMembers(){lsSave('thsd',{});if(window.__fb)await window.__fb.clearMembers();},
+  async saveMemberList(m){lsSave('thm',m);if(window.__fb)await window.__fb.saveMemberList(m);},
+  async loadMemberList(){if(window.__fb){const v=await window.__fb.loadMemberList();if(v)return v;}return lsLoad('thm');},
 };
 
-let DATES = [], shiftData = {}, currentMember = null, periodApplied = false, isAdmin = false;
-
-async function fbSavePeriod(s,e){await set(ref(db,'shift/period'),{start:s,end:e});}
-async function fbLoadPeriod(){const snap=await get(ref(db,'shift/period'));return snap.exists()?snap.val():null;}
-async function fbSaveMember(name,data){await set(ref(db,`shift/members/${name.replace(/[.#$[\]/]/g,'_')}`),data);}
-async function fbLoadAll(){const snap=await get(ref(db,'shift/members'));return snap.exists()?snap.val():{};}
-async function fbClearMembers(){await remove(ref(db,'shift/members'));}
-
+// ===== Init =====
 async function init() {
-  initMemberSelect(); updatePreview(); renderSettingsStats();
-  const period = await fbLoadPeriod();
+  const savedMembers = await fb.loadMemberList();
+  if (savedMembers) MEMBERS = savedMembers;
+  initMemberSelect();
+  renderSettingsStats();
+  const period = await fb.loadPeriod();
   if (period) {
     document.getElementById('startDate').value = period.start;
     document.getElementById('endDate').value = period.end;
     DATES = buildDates(period.start, period.end);
     periodApplied = true;
-    updateHeaderPeriod(); updatePreview(); renderSettingsStats();
+    updateHeaderPeriod();
+    updatePreview();
+    renderSettingsStats();
   }
-  await loadAllData();
+  const saved = await fb.loadAll();
+  if (saved) shiftData = saved;
 }
 
-window.loadAllData = async function() {
-  const data = await fbLoadAll();
-  shiftData = {};
-  for (const [k,v] of Object.entries(data||{})) shiftData[k]=v;
-  if (currentMember) renderInputTable(currentMember);
-};
-
-window.checkPW = function() {
-  if (document.getElementById('pwInput').value === ADMIN_PW) {
+// ===== Auth =====
+function checkPW() {
+  const val = document.getElementById('pwInput').value;
+  if (val === ADMIN_PW) {
     isAdmin = true;
     document.getElementById('authBox').style.display = 'none';
     document.getElementById('settingsBox').style.display = 'block';
     document.getElementById('adminChip').style.display = 'inline-flex';
     const tab = document.getElementById('tabSettings');
-    tab.classList.remove('locked'); tab.textContent = '⚙️ 期間設定';
+    tab.classList.remove('locked');
+    tab.textContent = '⚙️ 期間設定';
     document.getElementById('pwError').textContent = '';
-    updatePreview(); renderSettingsStats();
+    updatePreview();
+    renderSettingsStats();
   } else {
     document.getElementById('pwError').textContent = 'パスワードが違います';
     document.getElementById('pwInput').value = '';
     setTimeout(()=>document.getElementById('pwError').textContent='', 2500);
   }
-};
+}
 
-window.logout = function() {
+function logout() {
   isAdmin = false;
   document.getElementById('authBox').style.display = 'block';
   document.getElementById('settingsBox').style.display = 'none';
   document.getElementById('adminChip').style.display = 'none';
   document.getElementById('pwInput').value = '';
   const tab = document.getElementById('tabSettings');
-  tab.classList.add('locked'); tab.textContent = '🔒 期間設定';
+  tab.classList.add('locked');
+  tab.textContent = '🔒 期間設定';
   showPage('input', document.getElementById('tabInput'));
-};
+}
 
-window.clickSettings = function() {
+function clickSettings() {
   showPage('settings', document.getElementById('tabSettings'));
   if (!isAdmin) setTimeout(()=>document.getElementById('pwInput').focus(), 100);
-};
+}
 
+// ===== Period =====
 function buildDates(start, end) {
   const dates=[], cur=new Date(start), last=new Date(end);
   while(cur<=last){
@@ -358,40 +418,52 @@ function buildDates(start, end) {
   return dates;
 }
 
-window.updatePreview = function() {
+function updatePreview() {
   const s=document.getElementById('startDate').value, e=document.getElementById('endDate').value;
-  if(!s||!e)return;
+  if(!s||!e){document.getElementById('periodPreview').textContent='日付を選択してください';return;}
   const sd=new Date(s),ed=new Date(e),days=Math.round((ed-sd)/86400000)+1;
   const fmt=d=>{const dt=new Date(d);return`${dt.getFullYear()}年${dt.getMonth()+1}月${dt.getDate()}日（${DAYS_JA[dt.getDay()]}）`;};
   document.getElementById('periodPreview').textContent = sd>ed?'⚠ 終了日が開始日より前です':`${fmt(s)}  〜  ${fmt(e)}　計 ${days} 日間`;
-};
+}
 
-window.applyPeriod = async function() {
+async function applyPeriod() {
   const s=document.getElementById('startDate').value, e=document.getElementById('endDate').value;
   if(!s||!e||new Date(s)>new Date(e)){alert('期間が正しくありません');return;}
-  if(periodApplied&&!confirm('期間を変更すると入力済みデータがすべて削除されます。続けますか？'))return;
-  DATES=buildDates(s,e); periodApplied=true; shiftData={}; currentMember=null;
-  await fbSavePeriod(s,e); await fbClearMembers();
-  updateHeaderPeriod(); renderSettingsStats(); initMemberSelect();
+  if(periodApplied&&!confirm('期間を変更すると入力済みデータがリセットされます。続けますか？'))return;
+  DATES=buildDates(s,e);
+  periodApplied=true;
+  shiftData={};
+  currentMember=null;
+  await fb.savePeriod(s,e);
+  await fb.clearMembers();
+  updateHeaderPeriod();
+  renderSettingsStats();
+  initMemberSelect();
   document.getElementById('inputTableWrap').style.display='none';
   document.getElementById('noMemberMsg').style.display='block';
   document.getElementById('memberSelect').value='';
   showToast(`期間を確定しました（${DATES.length}日間）`);
-};
+}
 
 function updateHeaderPeriod() {
   if(!DATES.length)return;
-  document.getElementById('headerPeriod').textContent=`${DATES[0].date}（${DATES[0].day}）〜 ${DATES[DATES.length-1].date}（${DATES[DATES.length-1].day}）　${DATES.length}日間`;
+  document.getElementById('headerPeriod').textContent=`${DATES[0].date}（${DATES[0].day}）〜 ${DATES[DATES.length-1].date}（${DATES[DATES.length-1].day}）`;
 }
 
 function renderSettingsStats() {
-  const el=document.getElementById('settingsStats'), allM=Object.values(MEMBERS).flat().length;
+  const el=document.getElementById('settingsStats');
+  const allM=Object.values(MEMBERS).flat().length;
   el.innerHTML='';
-  [['期間',DATES.length?DATES[0].date+'〜'+DATES[DATES.length-1].date:'未設定'],['日数',DATES.length?DATES.length+'日':'—'],['メンバー数',allM+'人'],['エリア','3']].forEach(([l,v])=>{
+  [['期間',DATES.length?DATES[0].date+'〜'+DATES[DATES.length-1].date:'未設定'],
+   ['日数',DATES.length?DATES.length+'日':'—'],
+   ['メンバー数',allM+'人'],
+   ['エリア','3']
+  ].forEach(([l,v])=>{
     el.innerHTML+=`<div class="stat"><div class="stat-label">${l}</div><div class="stat-val" style="font-size:17px">${v}</div></div>`;
   });
 }
 
+// ===== Member =====
 function initMemberSelect() {
   const sel=document.getElementById('memberSelect');
   sel.innerHTML='<option value="">— 選んでください —</option>';
@@ -402,9 +474,9 @@ function initMemberSelect() {
   }
 }
 
-function getMemberArea(n){for(const[a,ms]of Object.entries(MEMBERS))if(ms.includes(n))return a;return'';}
+function getMemberArea(n){for(const[a,ms]of Object.entries(MEMBERS))if(ms.includes(n))return a;return '';}
 
-window.loadMember = function() {
+function loadMember() {
   if(!periodApplied){alert('先に「期間設定」タブで期間を確定してください');document.getElementById('memberSelect').value='';return;}
   const name=document.getElementById('memberSelect').value;
   if(!name){document.getElementById('inputTableWrap').style.display='none';document.getElementById('noMemberMsg').style.display='block';return;}
@@ -417,7 +489,7 @@ window.loadMember = function() {
   document.getElementById('memberNameLabel').textContent=name+' さんの希望';
   if(!shiftData[name])shiftData[name]={};
   renderInputTable(name);
-};
+}
 
 function cellClass(val) {
   if(!val||val==='')return'';
@@ -447,7 +519,9 @@ function renderInputTable(name) {
   DATES.forEach((d,i)=>{
     const td=document.createElement('td');
     const val=(shiftData[name]||{})[i]||'';
+    const memo=(shiftData[name]||{})['memo_'+i]||'';
     td.className=cellClass(val)+(d.isSat?' sat':d.isSun?' sun':'');
+    const inner=document.createElement('div'); inner.className='cell-inner';
     const sel=document.createElement('select'); sel.className='cell-select';
     opts.forEach(o=>{
       const op=document.createElement('option');
@@ -460,32 +534,60 @@ function renderInputTable(name) {
       shiftData[name][i]=this.value;
       td.className=cellClass(this.value)+(d.isSat?' sat':d.isSun?' sun':'');
     });
-    td.appendChild(sel); row.appendChild(td);
+    const memoBtn=document.createElement('button');
+    memoBtn.className='memo-btn'+(memo?' has-memo':'');
+    memoBtn.textContent='✏️';
+    memoBtn.title=memo||'メモを追加';
+    memoBtn.addEventListener('click',function(e){
+      e.stopPropagation();
+      openMemo(name,i,d.date+'('+d.day+')');
+    });
+    inner.appendChild(sel); inner.appendChild(memoBtn);
+    td.appendChild(inner); row.appendChild(td);
   });
   tbody.appendChild(row); table.appendChild(tbody);
 }
 
-window.saveToFirebase = async function() {
+async function saveData() {
   if(!currentMember)return;
   document.getElementById('syncStatus').textContent='保存中...';
-  try{
-    await fbSaveMember(currentMember,shiftData[currentMember]||{});
-    document.getElementById('syncStatus').textContent='✓ 保存済み';
-    showToast(currentMember+'さんの希望を保存しました');
-    setTimeout(()=>document.getElementById('syncStatus').textContent='',3000);
-  }catch(e){
-    document.getElementById('syncStatus').textContent='⚠ 保存失敗';
-    alert('保存に失敗しました: '+e.message);
-  }
-};
+  await fb.saveMember(currentMember, shiftData[currentMember]||{});
+  document.getElementById('syncStatus').textContent='✓ 保存済み';
+  showToast(currentMember+'さんの希望を保存しました');
+  setTimeout(()=>document.getElementById('syncStatus').textContent='',3000);
+}
 
-window.clearMember = function() {
+async function clearMember() {
   if(!currentMember)return;
   if(!confirm(currentMember+'さんの入力をクリアしますか？'))return;
-  shiftData[currentMember]={}; renderInputTable(currentMember);
-};
+  shiftData[currentMember]={};
+  await fb.saveMember(currentMember,{});
+  renderInputTable(currentMember);
+}
 
-window.renderOverview = function() {
+// ===== Memo =====
+function openMemo(name,idx,dateLabel){
+  memoTarget={name,idx};
+  const memo=(shiftData[name]||{})['memo_'+idx]||'';
+  document.getElementById('memoTitle').textContent=name+'さん　'+dateLabel+' のメモ';
+  document.getElementById('memoTextarea').value=memo;
+  document.getElementById('memoPopup').classList.add('open');
+  setTimeout(()=>document.getElementById('memoTextarea').focus(),100);
+}
+function closeMemo(){document.getElementById('memoPopup').classList.remove('open');}
+async function saveMemo(){
+  const {name,idx}=memoTarget;
+  if(!name)return;
+  const val=document.getElementById('memoTextarea').value.trim();
+  if(!shiftData[name])shiftData[name]={};
+  shiftData[name]['memo_'+idx]=val;
+  await fb.saveMember(name, shiftData[name]||{});
+  document.getElementById('memoPopup').classList.remove('open');
+  renderInputTable(name);
+}
+
+// ===== Overview =====
+function renderOverview() {
   const filter=document.getElementById('areaFilter').value;
   const container=document.getElementById('overviewTable'); container.innerHTML='';
   const areas=filter==='all'?['葉山','三浦','FARM']:[filter];
@@ -519,9 +621,10 @@ window.renderOverview = function() {
     const filled=ms.filter(m=>shiftData[m]&&Object.values(shiftData[m]).some(v=>v&&v!=='NG')).length;
     statsEl.innerHTML+=`<div class="stat"><div class="stat-label">${area} 入力済み</div><div class="stat-val">${filled}<span class="stat-sub"> / ${ms.length}</span></div></div>`;
   });
-};
+}
 
-window.renderExportStats = function() {
+// ===== Export =====
+function renderExportStats() {
   const el=document.getElementById('exportStats'); el.innerHTML=''; let total=0;
   ['葉山','三浦','FARM'].forEach(area=>{
     const ms=MEMBERS[area];
@@ -531,19 +634,9 @@ window.renderExportStats = function() {
   });
   const allM=Object.values(MEMBERS).flat().length;
   el.innerHTML+=`<div class="stat"><div class="stat-label">全体</div><div class="stat-val">${total}<span class="stat-sub"> / ${allM}人</span></div></div>`;
-};
+}
 
-window.showPage = function(id,btn) {
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
-  if(btn)btn.classList.add('active');
-  if(id==='overview')loadAllData().then(renderOverview);
-  if(id==='export')loadAllData().then(renderExportStats);
-};
-
-window.exportExcel = async function() {
-  await loadAllData();
+function exportExcel() {
   if(!DATES.length){alert('先に期間を設定してください');return;}
   const script=document.createElement('script');
   script.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
@@ -551,10 +644,10 @@ window.exportExcel = async function() {
     const wb=window.XLSX.utils.book_new();
     ['葉山','三浦','FARM'].forEach(area=>{
       const ms=MEMBERS[area];
-      const rows=[['メンバー',...DATES.map(d=>d.date)],['', ...DATES.map(d=>d.day)]];
-      ms.forEach(name=>rows.push([name,...DATES.map((d,i)=>(shiftData[name]||{})[i]||'')]));
+      const rows=[['メンバー',...DATES.map(d=>d.date),...DATES.map(d=>d.date+'(メモ)')],['', ...DATES.map(d=>d.day),...DATES.map(d=>d.day)]];
+      ms.forEach(name=>rows.push([name,...DATES.map((d,i)=>(shiftData[name]||{})[i]||''),...DATES.map((d,i)=>(shiftData[name]||{})['memo_'+i]||'')]));
       const ws=window.XLSX.utils.aoa_to_sheet(rows);
-      ws['!cols']=[{wch:12},...DATES.map(()=>({wch:9}))];
+      ws['!cols']=[{wch:12},...DATES.map(()=>({wch:9})),...DATES.map(()=>({wch:14}))];
       window.XLSX.utils.book_append_sheet(wb,ws,area);
     });
     const allRows=[['エリア','メンバー',...DATES.map(d=>d.date+'('+d.day+')')]];
@@ -565,26 +658,110 @@ window.exportExcel = async function() {
     window.XLSX.writeFile(wb,`シフト希望_${DATES[0].date.replace('/','')}-${DATES[DATES.length-1].date.replace('/','')}.xlsx`);
   };
   document.head.appendChild(script);
-};
+}
 
-window.exportCSV = async function() {
-  await loadAllData();
+function exportCSV() {
   if(!DATES.length){alert('先に期間を設定してください');return;}
-  const rows=[['エリア','メンバー',...DATES.map(d=>d.date+'('+d.day+')')]];
-  ['葉山','三浦','FARM'].forEach(area=>{MEMBERS[area].forEach(name=>rows.push([area,name,...DATES.map((d,i)=>(shiftData[name]||{})[i]||'')]));});
+  const rows=[['エリア','メンバー',...DATES.map(d=>d.date+'('+d.day+')'),...DATES.map(d=>d.date+'メモ')]];
+  ['葉山','三浦','FARM'].forEach(area=>{MEMBERS[area].forEach(name=>rows.push([area,name,...DATES.map((d,i)=>(shiftData[name]||{})[i]||''),...DATES.map((d,i)=>(shiftData[name]||{})['memo_'+i]||'')]));});
   const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\r\n');
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a'); a.href=url; a.download=`シフト希望_${DATES[0].date.replace('/','')}.csv`; a.click();
   URL.revokeObjectURL(url);
-};
+}
 
-window.showToast = function(msg) {
+// ===== Pages =====
+function showPage(id,btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(id==='overview')renderOverview();
+  if(id==='export')renderExportStats();
+}
+
+// ===== Member Management =====
+function clickMembers() {
+  showPage('members', document.getElementById('tabMembers'));
+  if(!isAdmin) setTimeout(()=>document.getElementById('pwInputM').focus(),100);
+}
+
+function checkPWM() {
+  if(document.getElementById('pwInputM').value===ADMIN_PW){
+    document.getElementById('membersAuthBox').style.display='none';
+    document.getElementById('membersPanel').style.display='block';
+    document.getElementById('tabMembers').classList.remove('locked');
+    document.getElementById('tabMembers').innerHTML='👥 メンバー管理';
+    document.getElementById('pwErrorM').textContent='';
+    renderMemberList();
+  } else {
+    document.getElementById('pwErrorM').textContent='パスワードが違います';
+    document.getElementById('pwInputM').value='';
+    setTimeout(()=>document.getElementById('pwErrorM').textContent='',2500);
+  }
+}
+
+function logoutM() {
+  document.getElementById('membersAuthBox').style.display='block';
+  document.getElementById('membersPanel').style.display='none';
+  document.getElementById('pwInputM').value='';
+  document.getElementById('tabMembers').classList.add('locked');
+  document.getElementById('tabMembers').innerHTML='👥 メンバー管理';
+  showPage('input',document.getElementById('tabInput'));
+}
+
+function renderMemberList() {
+  const container=document.getElementById('memberListContainer'); container.innerHTML='';
+  ['葉山','三浦','FARM'].forEach(area=>{
+    const title=document.createElement('div');
+    title.style.cssText='font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin:12px 0 6px';
+    title.textContent=area; container.appendChild(title);
+    (MEMBERS[area]||[]).forEach((name,idx)=>{
+      const item=document.createElement('div'); item.className='member-list-item';
+      item.innerHTML=`<span class="member-list-name">${name}</span><span class="member-list-area">${area}</span>
+        <button class="member-del-btn" onclick="deleteMember('${area}',${idx})">×</button>`;
+      container.appendChild(item);
+    });
+  });
+}
+
+function deleteMember(area,idx) {
+  const name=MEMBERS[area][idx];
+  if(!confirm(name+'を削除しますか？'))return;
+  MEMBERS[area].splice(idx,1);
+  renderMemberList();
+}
+
+function addMember() {
+  const name=document.getElementById('newMemberName').value.trim();
+  const area=document.getElementById('newMemberArea').value;
+  if(!name){document.getElementById('newMemberName').focus();return;}
+  if(!MEMBERS[area])MEMBERS[area]=[];
+  MEMBERS[area].push(name);
+  document.getElementById('newMemberName').value='';
+  renderMemberList();
+}
+
+async function saveMemberList() {
+  await fb.saveMemberList(MEMBERS);
+  initMemberSelect();
+  showToast('メンバーリストを保存しました');
+}
+
+// ===== Toast =====
+function showToast(msg) {
   const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2500);
-};
+}
 
-init();
+// ===== Start =====
+function startApp(){
+  if(window.__fbReady){init();}
+  else{window.addEventListener('fbReady',()=>init(),{once:true});setTimeout(()=>{if(!window.__fbReady)init();},3000);}
+}
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',startApp);}
+else{startApp();}
 </script>
 </body>
 </html>
