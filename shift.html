@@ -644,33 +644,47 @@ function exportExcel() {
     const wb=window.XLSX.utils.book_new();
     ['葉山','三浦','FARM'].forEach(area=>{
       const ms=MEMBERS[area];
-      const rows=[['メンバー',...DATES.map(d=>d.date),...DATES.map(d=>d.date+'(メモ)')],['', ...DATES.map(d=>d.day),...DATES.map(d=>d.day)]];
-      ms.forEach(name=>rows.push([name,...DATES.map((d,i)=>(shiftData[name]||{})[i]||''),...DATES.map((d,i)=>(shiftData[name]||{})['memo_'+i]||'')]));
+      const rows=[['メンバー',...DATES.map(d=>d.date+'('+d.day+')')]];
+      ms.forEach(name=>{
+        rows.push([name,...DATES.map((d,i)=>(shiftData[name]||{})[i]||'')]);
+        const memoRow=['',...DATES.map((d,i)=>(shiftData[name]||{})['memo_'+i]||'')];
+        if(memoRow.slice(1).some(v=>v!=='')) rows.push(memoRow);
+      });
       const ws=window.XLSX.utils.aoa_to_sheet(rows);
-      ws['!cols']=[{wch:12},...DATES.map(()=>({wch:9})),...DATES.map(()=>({wch:14}))];
+      ws['!cols']=[{wch:14},...DATES.map(()=>({wch:12}))];
       window.XLSX.utils.book_append_sheet(wb,ws,area);
     });
     const allRows=[['エリア','メンバー',...DATES.map(d=>d.date+'('+d.day+')')]];
-    ['葉山','三浦','FARM'].forEach(area=>{MEMBERS[area].forEach(name=>allRows.push([area,name,...DATES.map((d,i)=>(shiftData[name]||{})[i]||'')]));});
+    ['葉山','三浦','FARM'].forEach(area=>{
+      MEMBERS[area].forEach(name=>{
+        allRows.push([area,name,...DATES.map((d,i)=>(shiftData[name]||{})[i]||'')]);
+        const memoRow=[area,'(メモ)',...DATES.map((d,i)=>(shiftData[name]||{})['memo_'+i]||'')];
+        if(memoRow.slice(2).some(v=>v!=='')) allRows.push(memoRow);
+      });
+    });
     const wsAll=window.XLSX.utils.aoa_to_sheet(allRows);
-    wsAll['!cols']=[{wch:8},{wch:12},...DATES.map(()=>({wch:10}))];
+    wsAll['!cols']=[{wch:8},{wch:14},...DATES.map(()=>({wch:12}))];
     window.XLSX.utils.book_append_sheet(wb,wsAll,'全体');
     window.XLSX.writeFile(wb,`シフト希望_${DATES[0].date.replace('/','')}-${DATES[DATES.length-1].date.replace('/','')}.xlsx`);
   };
   document.head.appendChild(script);
 }
-
 function exportCSV() {
   if(!DATES.length){alert('先に期間を設定してください');return;}
-  const rows=[['エリア','メンバー',...DATES.map(d=>d.date+'('+d.day+')'),...DATES.map(d=>d.date+'メモ')]];
-  ['葉山','三浦','FARM'].forEach(area=>{MEMBERS[area].forEach(name=>rows.push([area,name,...DATES.map((d,i)=>(shiftData[name]||{})[i]||''),...DATES.map((d,i)=>(shiftData[name]||{})['memo_'+i]||'')]));});
+  const rows=[['エリア','メンバー',...DATES.map(d=>d.date+'('+d.day+')')]];
+  ['葉山','三浦','FARM'].forEach(area=>{
+    MEMBERS[area].forEach(name=>{
+      rows.push([area,name,...DATES.map((d,i)=>(shiftData[name]||{})[i]||'')]);
+      const memoRow=[area,'(メモ)',...DATES.map((d,i)=>(shiftData[name]||{})['memo_'+i]||'')];
+      if(memoRow.slice(2).some(v=>v!=='')) rows.push(memoRow);
+    });
+  });
   const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\r\n');
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a'); a.href=url; a.download=`シフト希望_${DATES[0].date.replace('/','')}.csv`; a.click();
   URL.revokeObjectURL(url);
 }
-
 // ===== Pages =====
 function showPage(id,btn) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
