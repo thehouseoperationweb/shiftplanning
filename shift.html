@@ -301,12 +301,15 @@ const _app = initializeApp({
   appId: "1:305882214266:web:affa4deb3b2b14d278f0c3",
 });
 const _db = getDatabase(_app);
+function _periodKey(s,e){return 'shift_'+s.replace(/-/g,'')+'_'+e.replace(/-/g,'');}
 window.__fb = {
+  _pk: null,
+  setPeriodKey(s,e){ this._pk=_periodKey(s,e); },
   savePeriod:(s,e)=>set(ref(_db,'shift/period'),{start:s,end:e}),
   loadPeriod:async()=>{const s=await get(ref(_db,'shift/period'));return s.exists()?s.val():null;},
-  saveMember:(name,data)=>set(ref(_db,'shift/members/'+name.replace(/[.#$[\]/]/g,'_')),data),
-  loadAll:async()=>{const s=await get(ref(_db,'shift/members'));return s.exists()?s.val():{};},
-  clearMembers:()=>remove(ref(_db,'shift/members')),
+  saveMember(name,data){const pk=this._pk||'shift_members';return set(ref(_db,pk+'/members/'+name.replace(/[.#$[\]/]/g,'_')),data);},
+  loadAll:async function(){const pk=this._pk||'shift_members';const s=await get(ref(_db,pk+'/members'));return s.exists()?s.val():{};},
+  clearMembers:async function(){/* 期間変更でもデータは消さない */},
   saveMemberList:(m)=>set(ref(_db,'shift/memberList'),m),
   loadMemberList:async()=>{const s=await get(ref(_db,'shift/memberList'));return s.exists()?s.val():null;},
 };
@@ -362,6 +365,7 @@ async function init() {
     document.getElementById('endDate').value = period.end;
     DATES = buildDates(period.start, period.end);
     periodApplied = true;
+    if(window.__fb) window.__fb.setPeriodKey(period.start, period.end);
     updateHeaderPeriod();
     updatePreview();
     renderSettingsStats();
@@ -435,7 +439,8 @@ async function applyPeriod() {
   shiftData={};
   currentMember=null;
   await fb.savePeriod(s,e);
-  await fb.clearMembers();
+  if(window.__fb) window.__fb.setPeriodKey(s,e);
+  // データは消去しない
   updateHeaderPeriod();
   renderSettingsStats();
   initMemberSelect();
