@@ -291,11 +291,10 @@ td.cell-ng{background:rgba(100,100,100,0.1)!important}
 
 <div class="toast" id="toast"></div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-import { getDatabase, ref, set, get, remove } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
-
-const firebaseConfig = {
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+<script>
+firebase.initializeApp({
   apiKey: "AIzaSyDMIeH-2j1fCE2i1J4UsqUdMxWtdc7alkk",
   authDomain: "the-house-cleaning-check.firebaseapp.com",
   databaseURL: "https://the-house-cleaning-check-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -303,21 +302,18 @@ const firebaseConfig = {
   storageBucket: "the-house-cleaning-check.firebasestorage.app",
   messagingSenderId: "305882214266",
   appId: "1:305882214266:web:affa4deb3b2b14d278f0c3",
-};
-const fbApp = initializeApp(firebaseConfig);
-const db = getDatabase(fbApp);
-
+});
+const _db = firebase.database();
 window.__fb = {
-  savePeriod:(s,e)=>set(ref(db,'shift/period'),{start:s,end:e}),
-  loadPeriod:async()=>{const s=await get(ref(db,'shift/period'));return s.exists()?s.val():null;},
-  saveMember:(name,data)=>set(ref(db,'shift/members/'+name.replace(/[.#$[\]/]/g,'_')),data),
-  loadAll:async()=>{const s=await get(ref(db,'shift/members'));return s.exists()?s.val():{};},
+  savePeriod:(s,e)=>_db.ref('shift/period').set({start:s,end:e}),
+  loadPeriod:async()=>{const s=await _db.ref('shift/period').once('value');return s.exists()?s.val():null;},
+  saveMember:(name,data)=>_db.ref('shift/members/'+name.replace(/[.#$[\]/]/g,'_')).set(data),
+  loadAll:async()=>{const s=await _db.ref('shift/members').once('value');return s.exists()?s.val():{};},
   clearMembers:async()=>{},
-  saveMemberList:(m)=>set(ref(db,'shift/memberList'),m),
-  loadMemberList:async()=>{const s=await get(ref(db,'shift/memberList'));return s.exists()?s.val():null;},
+  saveMemberList:(m)=>_db.ref('shift/memberList').set(m),
+  loadMemberList:async()=>{const s=await _db.ref('shift/memberList').once('value');return s.exists()?s.val():null;},
 };
 window.__fbReady=true;
-window.dispatchEvent(new CustomEvent('fbReady'));
 </script>
 
 <script>
