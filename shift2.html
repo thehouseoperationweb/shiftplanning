@@ -349,7 +349,7 @@ const fb={
   async loadAll(){try{if(window.__fb){const v=await window.__fb.loadAll();if(v&&Object.keys(v).length)return v;}}catch(e){}return lsLoad('thsd')||{};},
   async clearMembers(){lsSave('thsd',{});},
   async saveMemberList(m){lsSave('thm',m);try{if(window.__fb)await window.__fb.saveMemberList(m);}catch(e){}},
-  async loadMemberList(){try{if(window.__fb){const v=await window.__fb.loadMemberList();if(v)return v;}}catch(e){}return lsLoad('thm');},
+  async loadMemberList(){try{if(window.__fb){const v=await window.__fb.loadMemberList();if(v){lsSave('thm',v);return v;}}}catch(e){}return lsLoad('thm');},
 };
 
 // ===== Init =====
@@ -773,7 +773,6 @@ function showToast(msg) {
 
 // ===== Start =====
 function startApp(){
-  // Firebase is optional - always init, Firebase just enhances storage
   init();
 }
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',startApp);}
