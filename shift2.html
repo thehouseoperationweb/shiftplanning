@@ -773,10 +773,20 @@ function showToast(msg) {
 
 // ===== Start =====
 function startApp(){
-  init();
+  // Wait up to 3 seconds for Firebase, then run anyway
+  let waited = 0;
+  function tryInit() {
+    if(window.__fbReady || waited >= 30) {
+      init();
+    } else {
+      waited++;
+      setTimeout(tryInit, 100);
+    }
+  }
+  tryInit();
 }
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',startApp);}
-else{setTimeout(startApp, 100);}
+else{setTimeout(startApp, 50);}
 </script>
 </body>
 </html>
