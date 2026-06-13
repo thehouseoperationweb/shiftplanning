@@ -167,7 +167,7 @@ td.cell-ng{background:rgba(100,100,100,0.1)!important}
       <div class="actions">
         <button class="btn btn-accent" onclick="applyPeriod()">✓ この期間で確定する</button>
       </div>
-      <p style="font-size:12px;color:var(--text3);margin-top:10px">※ 期間変更すると入力済みデータがリセットされます</p>
+      <p style="font-size:12px;color:var(--text3);margin-top:10px">※ 期間を確定してください</p>
     </div>
     <div class="card">
       <div class="card-title">現在の設定</div>
@@ -341,13 +341,13 @@ let memoTarget = {name:null, idx:null};
 function lsSave(key,val){try{localStorage.setItem(key,JSON.stringify(val));}catch(e){}}
 function lsLoad(key){try{const v=localStorage.getItem(key);return v?JSON.parse(v):null;}catch(e){return null;}}
 const fb={
-  async savePeriod(s,e){lsSave('thp',{start:s,end:e});if(window.__fb)await window.__fb.savePeriod(s,e);},
-  async loadPeriod(){if(window.__fb){const v=await window.__fb.loadPeriod();if(v)return v;}return lsLoad('thp');},
-  async saveMember(n,d){lsSave('thsd',shiftData);if(window.__fb)await window.__fb.saveMember(n,d);},
-  async loadAll(){if(window.__fb){const v=await window.__fb.loadAll();if(v&&Object.keys(v).length)return v;}return lsLoad('thsd')||{};},
-  async clearMembers(){lsSave('thsd',{});if(window.__fb)await window.__fb.clearMembers();},
-  async saveMemberList(m){lsSave('thm',m);if(window.__fb)await window.__fb.saveMemberList(m);},
-  async loadMemberList(){if(window.__fb){const v=await window.__fb.loadMemberList();if(v)return v;}return lsLoad('thm');},
+  async savePeriod(s,e){lsSave('thp',{start:s,end:e});try{if(window.__fb)await window.__fb.savePeriod(s,e);}catch(e){}},
+  async loadPeriod(){try{if(window.__fb){const v=await window.__fb.loadPeriod();if(v)return v;}}catch(e){}return lsLoad('thp');},
+  async saveMember(n,d){lsSave('thsd',shiftData);try{if(window.__fb)await window.__fb.saveMember(n,d);}catch(e){}},
+  async loadAll(){try{if(window.__fb){const v=await window.__fb.loadAll();if(v&&Object.keys(v).length)return v;}}catch(e){}return lsLoad('thsd')||{};},
+  async clearMembers(){lsSave('thsd',{});},
+  async saveMemberList(m){lsSave('thm',m);try{if(window.__fb)await window.__fb.saveMemberList(m);}catch(e){}},
+  async loadMemberList(){try{if(window.__fb){const v=await window.__fb.loadMemberList();if(v)return v;}}catch(e){}return lsLoad('thm');},
 };
 
 // ===== Init =====
@@ -429,7 +429,7 @@ function updatePreview() {
 async function applyPeriod() {
   const s=document.getElementById('startDate').value, e=document.getElementById('endDate').value;
   if(!s||!e||new Date(s)>new Date(e)){alert('期間が正しくありません');return;}
-  if(periodApplied&&!confirm('期間を変更すると入力済みデータがリセットされます。続けますか？'))return;
+  // 期間変更してもデータは削除しない
   DATES=buildDates(s,e);
   periodApplied=true;
   shiftData={};
@@ -771,11 +771,11 @@ function showToast(msg) {
 
 // ===== Start =====
 function startApp(){
-  if(window.__fbReady){init();}
-  else{window.addEventListener('fbReady',()=>init(),{once:true});setTimeout(()=>{if(!window.__fbReady)init();},3000);}
+  // Firebase is optional - always init, Firebase just enhances storage
+  init();
 }
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',startApp);}
-else{startApp();}
+else{setTimeout(startApp, 100);}
 </script>
 </body>
 </html>
