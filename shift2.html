@@ -291,46 +291,42 @@ td.cell-ng{background:rgba(100,100,100,0.1)!important}
 
 <div class="toast" id="toast"></div>
 
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 <script>
+// ===== Firebase =====
 let _db = null;
+let _fbOk = false;
 
-function initFirebase() {
-  try {
-    if (typeof firebase === 'undefined') {
-      console.warn('Firebase SDK not loaded');
-      return;
-    }
-    firebase.initializeApp({
-      apiKey: "AIzaSyDMIeH-2j1fCE2i1J4UsqUdMxWtdc7alkk",
-      authDomain: "the-house-cleaning-check.firebaseapp.com",
-      databaseURL: "https://the-house-cleaning-check-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "the-house-cleaning-check",
-      storageBucket: "the-house-cleaning-check.firebasestorage.app",
-      messagingSenderId: "305882214266",
-      appId: "1:305882214266:web:affa4deb3b2b14d278f0c3",
-    });
-    _db = firebase.database();
+function _pKey(s,e){return s.replace(/-/g,'')+'_'+e.replace(/-/g,'');}
 
-    function _pKey(s,e){return s.replace(/-/g,'')+'_'+e.replace(/-/g,'');}
-    window.__fb = {
-      _pk: 'default',
-      setPk(s,e){ this._pk = _pKey(s,e); },
-      savePeriod:(s,e)=>_db.ref('shift/period').set({start:s,end:e}),
-      loadPeriod:async()=>{const s=await _db.ref('shift/period').once('value');return s.exists()?s.val():null;},
-      saveMember(name,data){return _db.ref('shift/data/'+this._pk+'/'+name.replace(/[.#$[\]/]/g,'_')).set(data);},
-      loadAll:async function(){const s=await _db.ref('shift/data/'+this._pk).once('value');return s.exists()?s.val():{};},
-      clearMembers:async function(){await _db.ref('shift/data/'+this._pk).remove();},
-      saveMemberList:(m)=>_db.ref('shift/memberList').set(m),
-      loadMemberList:async()=>{const s=await _db.ref('shift/memberList').once('value');return s.exists()?s.val():null;},
-    };
-    window.__fbReady = true;
-    window.dispatchEvent(new CustomEvent('fbReady'));
-  } catch(e) {
-    console.warn('Firebase init failed:', e);
-  }
-}
+try {
+  firebase.initializeApp({
+    apiKey:"AIzaSyDMIeH-2j1fCE2i1J4UsqUdMxWtdc7alkk",
+    authDomain:"the-house-cleaning-check.firebaseapp.com",
+    databaseURL:"https://the-house-cleaning-check-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId:"the-house-cleaning-check",
+    storageBucket:"the-house-cleaning-check.firebasestorage.app",
+    messagingSenderId:"305882214266",
+    appId:"1:305882214266:web:affa4deb3b2b14d278f0c3"
+  });
+  _db = firebase.database();
+  _fbOk = true;
+} catch(e){ console.warn('Firebase init failed:', e.message); }
+
+window.__fb = _fbOk ? {
+  _pk:'default',
+  setPk(s,e){ this._pk=_pKey(s,e); },
+  savePeriod:(s,e)=>_db.ref('shift/period').set({start:s,end:e}),
+  loadPeriod:async()=>{const s=await _db.ref('shift/period').once('value');return s.exists()?s.val():null;},
+  saveMember(name,data){return _db.ref('shift/data/'+this._pk+'/'+name.replace(/[.#$[\]/]/g,'_')).set(data);},
+  loadAll:async function(){const s=await _db.ref('shift/data/'+this._pk).once('value');return s.exists()?s.val():{};},
+  clearMembers:async function(){await _db.ref('shift/data/'+this._pk).remove();},
+  saveMemberList:(m)=>_db.ref('shift/memberList').set(m),
+  loadMemberList:async()=>{const s=await _db.ref('shift/memberList').once('value');return s.exists()?s.val():null;},
+} : null;
+window.__fbReady = _fbOk;
 </script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" onload="(function(){var s=document.createElement('script');s.src='https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js';s.onload=initFirebase;document.head.appendChild(s);})()"></script>
 
 <script>
 const ADMIN_PW = '1101';
@@ -805,6 +801,7 @@ function startApp(){
 }
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',startApp);}
 else{setTimeout(startApp, 50);}
+
 </script>
 </body>
 </html>
