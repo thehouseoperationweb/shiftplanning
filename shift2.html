@@ -304,12 +304,16 @@ firebase.initializeApp({
   appId: "1:305882214266:web:affa4deb3b2b14d278f0c3",
 });
 const _db = firebase.database();
+// Generate period key from start/end dates e.g. "2026-07-01_2026-07-15"
+function _pKey(s,e){return s.replace(/-/g,'')+'_'+e.replace(/-/g,'');}
 window.__fb = {
+  _pk: 'default',
+  setPk(s,e){ this._pk = _pKey(s,e); },
   savePeriod:(s,e)=>_db.ref('shift/period').set({start:s,end:e}),
   loadPeriod:async()=>{const s=await _db.ref('shift/period').once('value');return s.exists()?s.val():null;},
-  saveMember:(name,data)=>_db.ref('shift/members/'+name.replace(/[.#$[\]/]/g,'_')).set(data),
-  loadAll:async()=>{const s=await _db.ref('shift/members').once('value');return s.exists()?s.val():{};},
-  clearMembers:async()=>{},
+  saveMember(name,data){return _db.ref('shift/data/'+this._pk+'/'+name.replace(/[.#$[\]/]/g,'_')).set(data);},
+  loadAll:async function(){const s=await _db.ref('shift/data/'+this._pk).once('value');return s.exists()?s.val():{};},
+  clearMembers:async function(){await _db.ref('shift/data/'+this._pk).remove();},
   saveMemberList:(m)=>_db.ref('shift/memberList').set(m),
   loadMemberList:async()=>{const s=await _db.ref('shift/memberList').once('value');return s.exists()?s.val():null;},
 };
@@ -343,10 +347,15 @@ let memoTarget = {name:null, idx:null};
 function lsSave(key,val){try{localStorage.setItem(key,JSON.stringify(val));}catch(e){}}
 function lsLoad(key){try{const v=localStorage.getItem(key);return v?JSON.parse(v):null;}catch(e){return null;}}
 const fb={
-  async savePeriod(s,e){lsSave('thp',{start:s,end:e});try{if(window.__fb)await window.__fb.savePeriod(s,e);}catch(e){}},
-  async loadPeriod(){try{if(window.__fb){const v=await window.__fb.loadPeriod();if(v)return v;}}catch(e){}return lsLoad('thp');},
-  async saveMember(n,d){lsSave('thsd',shiftData);try{if(window.__fb)await window.__fb.saveMember(n,d);}catch(e){}},
-  async loadAll(){try{if(window.__fb){const v=await window.__fb.loadAll();if(v&&Object.keys(v).length)return v;}}catch(e){}return lsLoad('thsd')||{};},
+  async savePeriod(s,e){lsSave('thp',{start:s,end:e});try{if(window.__fb)await window.__fb.savePeriod(s,e);}catch(err){}},
+  async loadPeriod(){try{if(window.__fb){const v=await window.__fb.loadPeriod();if(v)return v;}}catch(err){}return lsLoad('thp');},
+  _lsKey(){return 'thsd_'+(window.__fb?window.__fb._pk:'default');},
+  async saveMember(n,d){lsSave(this._lsKey(),shiftData);try{if(window.__fb)await window.__fb.saveMember(n,d);}catch(err){}},
+  async loadAll(){try{if(window.__fb){const v=await window.__fb.loadAll();if(v&&Object.keys(v).length)return v;}}catch(err){}return lsLoad(this._lsKey())||{};},
+  async clearMembers(){lsSave(this._lsKey(),{});try{if(window.__fb)await window.__fb.clearMembers();}catch(err){}},
+  async saveMemberList(m){lsSave('thm',m);try{if(window.__fb)await window.__fb.saveMemberList(m);}catch(err){}},
+  async loadMemberList(){try{if(window.__fb){const v=await window.__fb.loadMemberList();if(v)return v;}}catch(err){}return lsLoad('thm');},
+};},
   async clearMembers(){lsSave('thsd',{});},
   async saveMemberList(m){lsSave('thm',m);try{if(window.__fb)await window.__fb.saveMemberList(m);}catch(e){}},
   async loadMemberList(){try{if(window.__fb){const v=await window.__fb.loadMemberList();if(v){lsSave('thm',v);return v;}}}catch(e){}return lsLoad('thm');},
@@ -364,6 +373,7 @@ async function init() {
     document.getElementById('endDate').value = period.end;
     DATES = buildDates(period.start, period.end);
     periodApplied = true;
+    if(window.__fb) window.__fb.setPk(period.start, period.end);
     updateHeaderPeriod();
     updatePreview();
     renderSettingsStats();
@@ -437,7 +447,7 @@ async function applyPeriod() {
   shiftData={};
   currentMember=null;
   await fb.savePeriod(s,e);
-  // データは消去しない（clearMembersは呼ばない）
+  if(window.__fb) window.__fb.setPk(s,e);
   updateHeaderPeriod();
   renderSettingsStats();
   initMemberSelect();
