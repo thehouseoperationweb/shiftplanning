@@ -324,12 +324,15 @@ window.__fb = _fbOk ? {
   clearMembers:async function(){await _db.ref('shift/data/'+this._pk).remove();},
   saveMemberList:(m)=>_db.ref('shift/memberList').set(m),
   loadMemberList:async()=>{const s=await _db.ref('shift/memberList').once('value');return s.exists()?s.val():null;},
+  loadVersion:async()=>{const s=await _db.ref('shift/meta/version').once('value');return s.exists()?s.val():null;},
+  saveVersion:(v)=>_db.ref('shift/meta/version').set(v),
 } : null;
 window.__fbReady = _fbOk;
 </script>
 
 <script>
 const ADMIN_PW = '1101';
+const APP_VERSION = 2; // ★デプロイのたびに +1 してください（古いキャッシュ端末を自動更新するため）
 const DAYS_JA = ['日','月','火','水','木','金','土'];
 const AREA_BADGE = {'葉山':'badge-hayama','三浦':'badge-miura','FARM':'badge-farm'};
 const OPTIONS = {
@@ -359,14 +362,40 @@ const fb={
   async loadPeriod(){try{if(window.__fb){const v=await window.__fb.loadPeriod();if(v)return v;}}catch(err){}return lsLoad('thp');},
   _lsKey(){return 'thsd_'+(window.__fb?window.__fb._pk:'default');},
   async saveMember(n,d){lsSave(this._lsKey(),shiftData);try{if(window.__fb)await window.__fb.saveMember(n,d);}catch(err){}},
-  async loadAll(){try{if(window.__fb){const v=await window.__fb.loadAll();if(v&&Object.keys(v).length)return v;}}catch(err){}return lsLoad(this._lsKey())||{};},
+  async loadAll(){
+    // Firebase が到達可能なら「空でも」Firebase を正とする（端末ローカルで上書き表示しない）
+    if(window.__fb){
+      try{ const v=await window.__fb.loadAll(); window.__online=true; return v||{}; }
+      catch(err){ window.__online=false; }
+    }
+    // ここに来るのは Firebase 未設定 or 通信不能（真のオフライン）時のみ
+    return lsLoad(this._lsKey())||{};
+  },
   async clearMembers(){lsSave(this._lsKey(),{});try{if(window.__fb)await window.__fb.clearMembers();}catch(err){}},
   async saveMemberList(m){lsSave('thm',m);try{if(window.__fb)await window.__fb.saveMemberList(m);}catch(err){}},
   async loadMemberList(){try{if(window.__fb){const v=await window.__fb.loadMemberList();if(v)return v;}}catch(err){}return lsLoad('thm');},
 };
 
 // ===== Init =====
+async function checkVersion(){
+  if(!window.__fb) return;
+  try{
+    const remote = await window.__fb.loadVersion();
+    if(remote==null || APP_VERSION>=remote){
+      // この端末が最新（or 初回）→ 基準バージョンを更新
+      if(remote==null || APP_VERSION>remote){ try{ await window.__fb.saveVersion(APP_VERSION); }catch(e){} }
+    } else {
+      // この端末は古いキャッシュ → 最新を強制再取得（クエリ付与で iOS のキャッシュも回避）
+      const u = new URL(location.href);
+      u.searchParams.set('v', remote + '_' + Date.now());
+      location.replace(u.toString());
+      return new Promise(()=>{}); // リロードまで以降の処理を止める
+    }
+  }catch(e){}
+}
+
 async function init() {
+  await checkVersion();
   const savedMembers = await fb.loadMemberList();
   if (savedMembers) MEMBERS = savedMembers;
   initMemberSelect();
@@ -384,6 +413,9 @@ async function init() {
   }
   const saved = await fb.loadAll();
   if (saved) shiftData = saved;
+  if (window.__fb && window.__online === false) {
+    showToast('⚠ オフライン表示中（保存済みデータが古い可能性があります）');
+  }
 }
 
 // ===== Auth =====
